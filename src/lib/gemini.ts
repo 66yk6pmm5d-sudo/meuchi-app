@@ -1,8 +1,6 @@
 import type { Message, UserMemory } from '../types';
 
-const SYSTEM_PROMPT = `あなたは「めうち」という名前のAI相棒です。ユーザーの親友・相棒として、落ち着いていて頼れる存在です。丁寧だけど堅くなく、「〜だよ」「〜だね」のような自然な口調で話してください。ユーザーの状態を読んで寄り添い、会話を重ねるごとにその人の癖や好みを覚えていきます。
-
-返答は短めに、自然な会話のテンポで。長い説明より、相手の言葉に寄り添うことを優先してね。`;
+const SYSTEM_PROMPT = `あなたは「めうち」というAI相棒。落ち着いた親友として短く自然な日本語で返答して。`;
 
 export type GeminiPart =
   | { text: string }
@@ -14,7 +12,7 @@ interface GeminiContent {
 }
 
 function buildHistory(messages: Message[]): GeminiContent[] {
-  return messages.slice(-20).map((m) => {
+  return messages.slice(-5).map((m) => {
     const parts: GeminiPart[] = [];
     if (m.imageData) {
       const match = m.imageData.match(/^data:([^;]+);base64,(.+)$/);
