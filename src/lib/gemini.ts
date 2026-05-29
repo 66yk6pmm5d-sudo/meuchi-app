@@ -12,22 +12,10 @@ interface GeminiContent {
 }
 
 function buildHistory(messages: Message[]): GeminiContent[] {
-  return messages.slice(-5).map((m) => {
-    const parts: GeminiPart[] = [];
-    if (m.imageData) {
-      const match = m.imageData.match(/^data:([^;]+);base64,(.+)$/);
-      if (match) {
-        parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
-      }
-    }
-    if (m.content) {
-      parts.push({ text: m.content });
-    }
-    return {
-      role: m.role === 'user' ? 'user' : 'model',
-      parts,
-    };
-  });
+  return messages.slice(-5).map((m) => ({
+    role: m.role === 'user' ? 'user' : 'model',
+    parts: m.content ? [{ text: m.content }] : [],
+  }));
 }
 
 function buildSystemWithMemory(memory: UserMemory): string {
