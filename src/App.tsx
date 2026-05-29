@@ -15,11 +15,11 @@ export default function App() {
   const [settings, setSettings] = useState<AppSettings>(() => getSettings());
   const [tab, setTab] = useState<Tab>('chat');
 
-  const { messages, loading, sendUserMessage, clearHistory } = useChat(settings.geminiApiKey);
+  const { messages, loading, sendUserMessage, clearHistory } = useChat(settings.openrouterApiKey);
 
   const handleVoiceResult = useCallback(
     async (text: string) => {
-      if (!settings.geminiApiKey) return;
+      if (!settings.openrouterApiKey) return;
       try {
         stopSpeaking();
         const reply = await sendUserMessage(text);
@@ -30,7 +30,7 @@ export default function App() {
         console.error(e);
       }
     },
-    [settings.geminiApiKey, settings.autoSpeak, sendUserMessage]
+    [settings.openrouterApiKey, settings.autoSpeak, sendUserMessage]
   );
 
   const { listening, supported, toggle, stop } = useSpeechRecognition({
@@ -44,8 +44,8 @@ export default function App() {
 
   const handleSendText = useCallback(
     async (text: string) => {
-      if (!settings.geminiApiKey) {
-        alert('設定画面でGemini APIキーを入力してね');
+      if (!settings.openrouterApiKey) {
+        alert('設定画面でOpenRouter APIキーを入力してね');
         setTab('settings');
         return;
       }
@@ -59,13 +59,13 @@ export default function App() {
         console.error(e);
       }
     },
-    [settings.geminiApiKey, settings.autoSpeak, sendUserMessage]
+    [settings.openrouterApiKey, settings.autoSpeak, sendUserMessage]
   );
 
   const handleImageUpload = useCallback(
     async (file: File) => {
-      if (!settings.geminiApiKey) {
-        alert('設定画面でGemini APIキーを入力してね');
+      if (!settings.openrouterApiKey) {
+        alert('設定画面でOpenRouter APIキーを入力してね');
         setTab('settings');
         return;
       }
@@ -80,7 +80,7 @@ export default function App() {
           stopSpeaking();
           const analysisPrompt =
             '画像に何が写っているか教えて。テキスト・レシート・予定などがあれば内容も読み取ってね。返答は日本語で、簡潔にまとめてね。';
-          const description = await analyzeImage(settings.geminiApiKey, base64, mime, analysisPrompt);
+          const description = await analyzeImage(settings.openrouterApiKey, base64, mime, analysisPrompt);
 
           const memo: Memo = {
             id: Math.random().toString(36).slice(2) + Date.now(),
@@ -105,7 +105,7 @@ export default function App() {
       };
       reader.readAsDataURL(file);
     },
-    [settings.geminiApiKey, settings.autoSpeak, sendUserMessage]
+    [settings.openrouterApiKey, settings.autoSpeak, sendUserMessage]
   );
 
   const handleSaveSettings = useCallback((s: AppSettings) => {
@@ -138,7 +138,7 @@ export default function App() {
               onToggleAutoSpeak={handleToggleAutoSpeak}
             />
           )}
-          {tab === 'memos' && <MemosView apiKey={settings.geminiApiKey} />}
+          {tab === 'memos' && <MemosView apiKey={settings.openrouterApiKey} />}
           {tab === 'settings' && (
             <SettingsView
               settings={settings}

@@ -2,19 +2,18 @@ import type { Message, UserMemory } from '../types';
 
 const SYSTEM_PROMPT = `あなたは「めうち」というAI相棒。落ち着いた親友として短く自然な日本語で返答して。`;
 
-export type GeminiPart =
-  | { text: string }
-  | { inlineData: { mimeType: string; data: string } };
+const MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
+const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-interface GeminiContent {
-  role: 'user' | 'model';
-  parts: GeminiPart[];
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
 }
 
-function buildHistory(messages: Message[]): GeminiContent[] {
+function buildHistory(messages: Message[]): ChatMessage[] {
   return messages.slice(-5).map((m) => ({
-    role: m.role === 'user' ? 'user' : 'model',
-    parts: m.content ? [{ text: m.content }] : [],
+    role: m.role === 'user' ? 'user' as const : 'assistant' as const,
+    content: m.content,
   }));
 }
 
@@ -35,47 +34,45 @@ export async function sendMessage(
   userText: string,
   history: Message[],
   memory: UserMemory,
-  imageBase64?: string,
-  imageMime?: string
+  _imageBase64?: string,
+  _imageMime?: string
 ): Promise<string> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const systemMsg: ChatMessage = {
+    role: 'system',
+    content: buildSystemWithMemory(memory),
+  };
 
-  const userParts: GeminiPart[] = [];
-  if (imageBase64 && imageMime) {
-    userParts.push({ inlineData: { mimeType: imageMime, data: imageBase64 } });
-  }
-  if (userText) userParts.push({ text: userText });
+  const historyMsgs = buildHistory(history);
+  const userMsg: ChatMessage = { role: 'user', content: userText };
 
-  const historyContents = buildHistory(history);
-  const contents: GeminiContent[] = historyContents.length > 0
-    ? [...historyContents, { role: 'user', parts: userParts }]
-    : [{ role: 'user', parts: userParts }];
+  const messages: ChatMessage[] = [systemMsg, ...historyMsgs, userMsg];
 
   const body = {
-    system_instruction: { parts: [{ text: buildSystemWithMemory(memory) }] },
-    contents,
-    generationConfig: {
-      temperature: 0.9,
-      maxOutputTokens: 512,
-    },
+    model: MODEL,
+    messages,
+    temperature: 0.9,
+    max_tokens: 512,
   };
 
   try {
-    const res = await fetch(url, {
+    const res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
       body: JSON.stringify(body),
     });
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       const errorMsg = (errData as { error?: { message?: string } })?.error?.message || `HTTP ${res.status}`;
-      console.error('Gemini API error:', errorMsg, errData);
+      console.error('OpenRouter API error:', errorMsg, errData);
       throw new Error(errorMsg);
     }
 
     const data = await res.json() as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> }; finishReason?: string }>;
+      choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
       error?: { message?: string };
     };
 
@@ -83,49 +80,23 @@ export async function sendMessage(
       throw new Error(data.error.message || 'API error');
     }
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = data.choices?.[0]?.message?.content;
     if (!text) {
-      console.error('Gemini API response:', JSON.stringify(data, null, 2));
+      console.error('OpenRouter API response:', JSON.stringify(data, null, 2));
       return 'うまく返答できなかったよ…もう一度試してみてね。';
     }
     return text;
   } catch (error) {
-    console.error('Gemini API call failed:', error);
+    console.error('OpenRouter API call failed:', error);
     throw error;
   }
 }
 
 export async function analyzeImage(
-  apiKey: string,
-  imageBase64: string,
-  imageMime: string,
-  prompt: string
+  _apiKey: string,
+  _imageBase64: string,
+  _imageMime: string,
+  _prompt: string
 ): Promise<string> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-  const body = {
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          { inlineData: { mimeType: imageMime, data: imageBase64 } },
-          { text: prompt },
-        ],
-      },
-    ],
-    generationConfig: { temperature: 0.4, maxOutputTokens: 512 },
-  };
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-  const data = await res.json() as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return 'このモデルは画像解析に対応していないよ。テキストで教えてもらえればメモにするよ。';
 }

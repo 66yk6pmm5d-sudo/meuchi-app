@@ -20,7 +20,7 @@ export interface UserMemory {
 }
 
 export interface AppSettings {
-  geminiApiKey: string;
+  openrouterApiKey: string;
   voiceEnabled: boolean;
   autoSpeak: boolean;
 }

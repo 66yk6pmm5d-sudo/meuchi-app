@@ -50,12 +50,12 @@ export function saveMemory(memory: UserMemory): void {
 export function getSettings(): AppSettings {
   try {
     return JSON.parse(localStorage.getItem(KEYS.settings) || 'null') || {
-      geminiApiKey: '',
+      openrouterApiKey: '',
       voiceEnabled: true,
       autoSpeak: true,
     };
   } catch {
-    return { geminiApiKey: '', voiceEnabled: true, autoSpeak: true };
+    return { openrouterApiKey: '', voiceEnabled: true, autoSpeak: true };
   }
 }
 

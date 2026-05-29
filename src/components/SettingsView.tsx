@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function SettingsView({ settings, onSave, onClearHistory }: Props) {
-  const [apiKey, setApiKey] = useState(settings.geminiApiKey);
+  const [apiKey, setApiKey] = useState(settings.openrouterApiKey);
   const [voiceEnabled, setVoiceEnabled] = useState(settings.voiceEnabled);
   const [autoSpeak, setAutoSpeak] = useState(settings.autoSpeak);
   const [showKey, setShowKey] = useState(false);
@@ -19,7 +19,7 @@ export default function SettingsView({ settings, onSave, onClearHistory }: Props
   const [confirmClear, setConfirmClear] = useState(false);
 
   function handleSave() {
-    onSave({ geminiApiKey: apiKey, voiceEnabled, autoSpeak });
+    onSave({ openrouterApiKey: apiKey, voiceEnabled, autoSpeak });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -46,13 +46,13 @@ export default function SettingsView({ settings, onSave, onClearHistory }: Props
 
       {/* API Key */}
       <section className="bg-zinc-800/60 rounded-2xl p-4 flex flex-col gap-3">
-        <p className="text-zinc-300 text-sm font-medium">Gemini API キー</p>
+        <p className="text-zinc-300 text-sm font-medium">OpenRouter API キー</p>
         <div className="relative flex items-center">
           <input
             type={showKey ? 'text' : 'password'}
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder="AIzaSy..."
+            placeholder="sk-or-..."
             className="w-full bg-zinc-900 text-zinc-100 placeholder-zinc-600 rounded-xl px-4 py-2.5 pr-10 text-sm outline-none focus:ring-1 focus:ring-teal-700"
           />
           <button
@@ -63,7 +63,7 @@ export default function SettingsView({ settings, onSave, onClearHistory }: Props
           </button>
         </div>
         <p className="text-zinc-600 text-[11px] leading-relaxed">
-          Google AI Studio からキーを取得してね。ローカルにのみ保存されるよ。
+          OpenRouter からキーを取得してね。ローカルにのみ保存されるよ。
         </p>
       </section>
 
